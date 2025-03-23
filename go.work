@@ -1,0 +1,16 @@
+go 1.23.3
+
+use (
+	./hw01_hello_otus
+	./hw02_unpack_string
+	./hw03_frequency_analysis
+	./hw04_lru_cache
+	./hw05_parallel_execution
+	./hw06_pipeline_execution
+	./hw07_file_copying
+	./hw08_envdir_tool
+	./hw09_struct_validator
+	./hw10_program_optimization
+	./hw11_telnet_client
+	./hw12_13_14_15_16_calendar
+)
