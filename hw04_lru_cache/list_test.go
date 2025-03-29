@@ -67,5 +67,4 @@ func TestList(t *testing.T) {
 		}
 		require.Equal(t, []any{"qwe", 2, true}, elems)
 	})
-
 }
