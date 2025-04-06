@@ -50,7 +50,100 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+
+		// Pushing due to the size of the queue
+
+		_ = c.Set("1", 101)
+		_ = c.Set("2", 102)
+		_ = c.Set("3", 103)
+
+		_, ok := c.Get("1")
+		require.True(t, ok)
+
+		_, ok = c.Get("2")
+		require.True(t, ok)
+
+		_, ok = c.Get("3")
+		require.True(t, ok)
+
+		_ = c.Set("4", 104)
+
+		_, ok = c.Get("1")
+		require.False(t, ok)
+
+		_, ok = c.Get("2")
+		require.True(t, ok)
+
+		_, ok = c.Get("3")
+		require.True(t, ok)
+
+		_, ok = c.Get("4")
+		require.True(t, ok)
+
+		// Clearing the cache
+		c.Clear()
+
+		_, ok = c.Get("2")
+		require.False(t, ok)
+
+		_, ok = c.Get("3")
+		require.False(t, ok)
+
+		_, ok = c.Get("4")
+		require.False(t, ok)
+
+		// Pushing due to the last access
+		_ = c.Set("1", 101)
+		_ = c.Set("2", 102)
+		_ = c.Set("3", 103)
+
+		_, ok = c.Get("3")
+		require.True(t, ok)
+
+		_, ok = c.Get("2")
+		require.True(t, ok)
+
+		_, ok = c.Get("1")
+		require.True(t, ok)
+
+		// "3" will be pushed out of the cache because
+		// it was accessed the least recently
+		_ = c.Set("4", 104)
+
+		_, ok = c.Get("1")
+		require.True(t, ok)
+
+		_, ok = c.Get("2")
+		require.True(t, ok)
+
+		_, ok = c.Get("3")
+		require.False(t, ok)
+
+		_, ok = c.Get("4")
+		require.True(t, ok)
+	})
+
+	t.Run("overwrite with same value", func(t *testing.T) {
+		c := NewCache(2)
+
+		_ = c.Set("x", 123)
+		wasInCache := c.Set("x", 123)
+
+		require.True(t, wasInCache)
+
+		val, ok := c.Get("x")
+		require.True(t, ok)
+		require.Equal(t, 123, val)
+	})
+
+	t.Run("zero capacity", func(t *testing.T) {
+		c := NewCache(0)
+
+		_ = c.Set("k", 1)
+
+		_, ok := c.Get("k")
+		require.False(t, ok)
 	})
 }
 
