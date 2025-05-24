@@ -150,6 +150,47 @@ func TestAllStageStop(t *testing.T) {
 		wg.Wait()
 
 		require.Len(t, result, 0)
-
 	})
+}
+
+func TestNoStages(t *testing.T) {
+	in := make(chan interface{})
+	out := ExecutePipeline(in, nil) // no stages
+
+	go func() {
+		defer close(in)
+		in <- 42
+	}()
+
+	v := <-out
+	require.Equal(t, 42, v)
+}
+
+func TestSingleStage(t *testing.T) {
+	in := make(chan interface{})
+	stage := func(in In) Out {
+		out := make(chan interface{})
+		go func() {
+			defer close(out)
+			for v := range in {
+				out <- v
+			}
+		}()
+		return out
+	}
+
+	out := ExecutePipeline(in, nil, stage)
+
+	go func() {
+		defer close(in)
+		in <- "1"
+		in <- "2"
+	}()
+
+	result := []string{}
+	for v := range out {
+		result = append(result, v.(string))
+	}
+
+	require.Equal(t, []string{"1", "2"}, result)
 }
