@@ -2,6 +2,7 @@ package hw09structvalidator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -42,10 +43,55 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			in: User{
+				ID:     "01234567-89ab-cdef-0123-456789abcdef",
+				Name:   "denis",
+				Age:    38,
+				Email:  "hilltracer@qweqwe.ru",
+				Role:   "admin",
+				Phones: []string{"12345678901", "00000000000"},
+			},
+			expectedErr: nil,
 		},
-		// ...
-		// Place your code here.
+		{
+			in: User{
+				ID:     "short-id",
+				Age:    10,
+				Email:  "not-an-email",
+				Role:   "unknown",
+				Phones: []string{"123"},
+			},
+			expectedErr: ErrValidation,
+		},
+		{
+			in: App{
+				Version: "1.2.3",
+			},
+			expectedErr: nil,
+		},
+		{
+			in: App{
+				Version: "v1",
+			},
+			expectedErr: ErrValidation,
+		},
+		{
+			in: Response{
+				Code: 200,
+				Body: "ok",
+			},
+			expectedErr: nil,
+		},
+		{
+			in: Response{
+				Code: 418,
+			},
+			expectedErr: ErrValidation,
+		},
+		{
+			in:          123, // not a struct
+			expectedErr: ErrUnsupportedType,
+		},
 	}
 
 	for i, tt := range tests {
@@ -53,8 +99,14 @@ func TestValidate(t *testing.T) {
 			tt := tt
 			t.Parallel()
 
-			// Place your code here.
-			_ = tt
+			err := Validate(tt.in)
+
+			if tt.expectedErr == nil && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
+				t.Fatalf("expected error %v, got %v", tt.expectedErr, err)
+			}
 		})
 	}
 }
