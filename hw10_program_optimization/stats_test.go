@@ -36,4 +36,24 @@ func TestGetDomainStat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
+
+	t.Run("mixed-case domain", func(t *testing.T) {
+		data := `{"Email":"QWE@QWEQWE.COM"}`
+		result, err := GetDomainStat(bytes.NewBufferString(data), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{
+			"qweqwe.com": 1,
+		}, result)
+	})
+
+	t.Run("empty email", func(t *testing.T) {
+		data := `{"Email":""}
+{"Email":"qwe@qweqwe.com"}`
+		result, err := GetDomainStat(bytes.NewBufferString(data), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{
+			"qweqwe.com": 1,
+		}, result)
+	})
+
 }
