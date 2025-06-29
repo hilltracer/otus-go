@@ -63,3 +63,17 @@ func TestTelnetClient(t *testing.T) {
 		wg.Wait()
 	})
 }
+
+func TestClientTimeout(t *testing.T) {
+	in := &bytes.Buffer{}
+	out := &bytes.Buffer{}
+
+	start := time.Now()
+	client := NewTelnetClient("10.255.255.1:12345", 150*time.Millisecond, io.NopCloser(in), out)
+	err := client.Connect()
+	duration := time.Since(start)
+
+	require.Error(t, err)
+	require.GreaterOrEqual(t, duration, 100*time.Millisecond)
+	require.Contains(t, err.Error(), "i/o timeout")
+}
