@@ -2,25 +2,25 @@ package app
 
 import (
 	"context"
+
+	"github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage"
 )
 
-type App struct { // TODO
+type App struct {
+	logger Logger
+	store  storage.Repository
 }
 
-type Logger interface { // TODO
+type Logger interface {
+	Info(string)
+	Error(string)
 }
 
-type Storage interface { // TODO
-}
-
-func New(logger Logger, storage Storage) *App {
-	return &App{}
+func New(logger Logger, storage storage.Repository) *App {
+	return &App{logger: logger, store: storage}
 }
 
 func (a *App) CreateEvent(ctx context.Context, id, title string) error {
-	// TODO
-	return nil
-	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+	e := storage.Event{ID: id, Title: title}
+	return a.store.CreateEvent(ctx, e)
 }
-
-// TODO

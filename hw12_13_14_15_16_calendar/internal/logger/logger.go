@@ -1,20 +1,45 @@
 package logger
 
-import "fmt"
+import (
+	"log"
+	"os"
+	"strings"
+)
 
-type Logger struct { // TODO
+type level int
+
+const (
+	errorLvl level = iota
+	infoLvl
+	debugLvl
+)
+
+func parseLevel(s string) level {
+	switch strings.ToLower(s) {
+	case "debug":
+		return debugLvl
+	case "info":
+		return infoLvl
+	default:
+		return errorLvl
+	}
 }
 
-func New(level string) *Logger {
-	return &Logger{}
+type Logger struct {
+	l     *log.Logger
+	level level
 }
 
-func (l Logger) Info(msg string) {
-	fmt.Println(msg)
+func New(lvl string) *Logger {
+	return &Logger{
+		l:     log.New(os.Stdout, "", log.LstdFlags),
+		level: parseLevel(lvl),
+	}
 }
 
-func (l Logger) Error(msg string) {
-	// TODO
+func (l *Logger) Info(msg string) {
+	if l.level >= infoLvl {
+		l.l.Println("INFO:", msg)
+	}
 }
-
-// TODO
+func (l *Logger) Error(msg string) { l.l.Println("ERROR:", msg) }

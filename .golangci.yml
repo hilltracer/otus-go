@@ -16,12 +16,25 @@ linters-settings:
           - "!$test"
         allow:
           - $gostd
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/app
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/config
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/logger
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/server/http
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage/memory
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage/sql
+          - github.com/spf13/viper
+          - github.com/jmoiron/sqlx
+          - github.com/lib/pq
       Test:
         files:
           - $test
         allow:
           - $gostd
           - github.com/stretchr/testify
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage
+          - github.com/DATA-DOG/go-sqlmock
+          - github.com/jmoiron/sqlx
 issues:
   exclude-rules:
     - path: _test\.go
