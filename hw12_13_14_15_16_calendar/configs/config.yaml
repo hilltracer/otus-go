@@ -1,5 +1,17 @@
-[logger]
-level = "INFO"
+logger:
+  level: "INFO"
 
-# TODO
-# ...
+http:
+  host: "127.0.0.1"
+  port: "8080"
+
+storage:
+  type: "sql" # memory | sql
+
+storage.pg:
+  host: "localhost"
+  port: 5432
+  user: "otus_user"
+  dbname: "calendar"
+  password_env: "CALENDAR_DB_PASSWORD" # export CALENDAR_DB_PASSWORD=XXX
+  sslmode: "disable"
