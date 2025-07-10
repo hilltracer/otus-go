@@ -35,6 +35,8 @@ linters-settings:
           - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage
           - github.com/DATA-DOG/go-sqlmock
           - github.com/jmoiron/sqlx
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/app
+          - github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/logger
 issues:
   exclude-rules:
     - path: _test\.go
