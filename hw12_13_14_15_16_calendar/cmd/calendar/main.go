@@ -14,6 +14,7 @@ import (
 	"github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/server/internalgrpc"
 	"github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage"
 	memorystorage "github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/hilltracer/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
@@ -72,21 +73,32 @@ func run() int {
 	server := internalhttp.NewServer(logg, calendar, addr)
 
 	go func() {
-		<-ctx.Done()
+		logg.Info("HTTP server starting on " + addr)
+		if err := server.Start(ctx); err != nil {
+			logg.Error("failed to start http server: " + err.Error())
+		}
+	}()
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
+	grpcAddr := net.JoinHostPort(cfg.GRPC.Host, cfg.GRPC.Port)
+	gsrv := internalgrpc.New(calendar, logg)
 
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
+	go func() {
+		logg.Info("gRPC server starting on " + grpcAddr)
+		if err := gsrv.Start(grpcAddr); err != nil {
+			logg.Error("failed to start grpc server: " + err.Error())
 		}
 	}()
 
 	logg.Info("calendar is running...")
 
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		return 1
-	}
+	<-ctx.Done()
+
+	// graceful shutdown
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	_ = server.Stop(ctxTimeout)
+	gsrv.Stop()
+
 	return 0
 }

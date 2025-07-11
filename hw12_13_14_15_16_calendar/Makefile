@@ -31,4 +31,7 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
-.PHONY: build run build-img run-img version test lint
+generate:
+	go generate ./internal/pb
+
+.PHONY: build run build-img run-img version test lint generate

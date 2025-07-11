@@ -53,9 +53,33 @@ func TestStorage(t *testing.T) {
 	if err := s.DeleteEvent(ctx, "1"); err != nil {
 		t.Fatalf("delete failed: %v", err)
 	}
+	if err := s.DeleteEvent(ctx, "3"); err != nil {
+		t.Fatalf("delete failed: %v", err)
+	}
 	// delete again -> not found
 	if err := s.DeleteEvent(ctx, "1"); !errors.Is(err, storage.ErrNotFound) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+
+	base := time.Date(2025, 7, 1, 10, 0, 0, 0, time.UTC)
+	add := func(id string, shiftDays int) {
+		_ = s.CreateEvent(ctx, mustEvent(id, base.AddDate(0, 0, shiftDays), time.Hour))
+	}
+	add("d1", 0)  // 1 july
+	add("d2", 2)  // 3 july
+	add("d3", 10) // 11 july
+
+	day, _ := s.ListDay(ctx, "u1", base)
+	if len(day) != 1 {
+		t.Fatalf("want 1 event on day, got %d", len(day))
+	}
+	week, _ := s.ListWeek(ctx, "u1", base)
+	if len(week) != 2 {
+		t.Fatalf("want 2 events in week, got %d", len(week))
+	}
+	month, _ := s.ListMonth(ctx, "u1", base)
+	if len(month) != 3 {
+		t.Fatalf("want 3 events in month, got %d", len(month))
 	}
 }
 
