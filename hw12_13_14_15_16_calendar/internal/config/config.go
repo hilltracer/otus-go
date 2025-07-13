@@ -7,6 +7,7 @@ import (
 type Config struct {
 	Logger  LoggerConf  `mapstructure:"logger"`
 	HTTP    HTTPConf    `mapstructure:"http"`
+	GRPC    GRPCConf    `mapstructure:"grpc"`
 	Storage StorageConf `mapstructure:"storage"`
 }
 
@@ -15,6 +16,11 @@ type LoggerConf struct {
 }
 
 type HTTPConf struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
+}
+
+type GRPCConf struct {
 	Host string `mapstructure:"host"`
 	Port string `mapstructure:"port"`
 }

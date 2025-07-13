@@ -39,8 +39,8 @@ func (s *Storage) CreateEvent(ctx context.Context, e storage.Event) error {
 	// overlap check
 	var exists bool
 	end := e.StartTime.Add(e.Duration)
-	queryOverlap := `SELECT true FROM events
-        WHERE user_id=$1 AND start_time < $3 AND (start_time + duration) > $2 LIMIT 1`
+	queryOverlap := `SELECT true FROM events WHERE user_id=$1 AND start_time < $3 AND
+        (start_time + (duration * interval '1 microsecond') / 1000) > $2 LIMIT 1`
 	if err = tx.QueryRowContext(ctx, queryOverlap, e.UserID, e.StartTime, end).Scan(&exists); err != nil &&
 		!errors.Is(err, sql.ErrNoRows) {
 		return err
@@ -86,8 +86,8 @@ func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
 	// overlap check (exclude self)
 	end := e.StartTime.Add(e.Duration)
 	var exists bool
-	queryOverlap := `SELECT true FROM events
-        WHERE user_id=$1 AND id <> $4 AND start_time < $3 AND (start_time + duration) > $2 LIMIT 1`
+	queryOverlap := `SELECT true FROM events WHERE user_id=$1 AND id <> $4 AND start_time < $3 AND
+	(start_time + (duration * interval '1 microsecond') / 1000) > $2 LIMIT 1`
 	if err = tx.QueryRowContext(ctx, queryOverlap, e.UserID, e.StartTime, end, e.ID).Scan(&exists); err != nil &&
 		!errors.Is(err, sql.ErrNoRows) {
 		return err
@@ -125,4 +125,38 @@ func (s *Storage) DeleteEvent(ctx context.Context, id string) error {
 		return storage.ErrNotFound
 	}
 	return nil
+}
+
+const baseSelect = `SELECT id, title, start_time, duration, description, user_id, notify_before
+                    FROM events WHERE user_id=$1 AND start_time >= $2 AND start_time < $3
+                    ORDER BY start_time`
+
+func (s *Storage) ListDay(ctx context.Context, userID string, date time.Time) ([]storage.Event, error) {
+	from := date.Truncate(24 * time.Hour)
+	to := from.Add(24 * time.Hour)
+	var out []storage.Event
+	if err := s.db.SelectContext(ctx, &out, baseSelect, userID, from, to); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *Storage) ListWeek(ctx context.Context, userID string, weekStart time.Time) ([]storage.Event, error) {
+	from := weekStart.Truncate(24 * time.Hour)
+	to := from.AddDate(0, 0, 7)
+	var out []storage.Event
+	if err := s.db.SelectContext(ctx, &out, baseSelect, userID, from, to); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *Storage) ListMonth(ctx context.Context, userID string, monthStart time.Time) ([]storage.Event, error) {
+	from := time.Date(monthStart.Year(), monthStart.Month(), 1, 0, 0, 0, 0, monthStart.Location())
+	to := from.AddDate(0, 1, 0)
+	var out []storage.Event
+	if err := s.db.SelectContext(ctx, &out, baseSelect, userID, from, to); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
